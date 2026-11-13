@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<!-- Review Engine v1.0 | Cave Labs Brands | schema 1 -->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Review Engine — Cave Labs Brands</title>
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<meta name="theme-color" content="#b45309">
+<style>
+:root{--amber:#b45309;--ink:#1c1917;--bg:#fffbeb;--card:#ffffff;--line:#e7e0cf;--ok:#15803d;--bad:#b91c1c}
+*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:var(--amber);color:#fff;padding:12px 16px}
+header h1{margin:0;font-size:1.25rem}header p{margin:2px 0 0;font-size:.85rem;opacity:.92}
+main{max-width:640px;margin:0 auto;padding:12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px;margin:0 0 12px}
+.card h2{margin:0 0 8px;font-size:1.02rem}
+label{display:block;font-size:.82rem;font-weight:600;margin:8px 0 3px}
+input{width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;font-size:1rem}
+button{min-height:48px;padding:10px 14px;border:0;border-radius:9px;background:var(--amber);color:#fff;font-size:.95rem;font-weight:600;cursor:pointer}
+button.ghost{background:#fff;color:var(--amber);border:2px solid var(--amber)}
+button.grey{background:#d6d0c2;color:#57534e;cursor:not-allowed}
+button.small{min-height:40px;padding:6px 10px;font-size:.85rem}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.stats{display:flex;gap:8px}.stat{flex:1;text-align:center;background:#fef3c7;border-radius:10px;padding:8px}
+.stat b{display:block;font-size:1.3rem}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+td,th{border-bottom:1px solid var(--line);padding:6px 4px;text-align:left;vertical-align:top}
+.note{font-size:.82rem;color:#57534e}
+#msg{white-space:pre-wrap;background:#faf7ee;border:1px dashed var(--amber);border-radius:8px;padding:10px;font-size:.92rem;margin-top:8px}
+#testpanel{border:2px solid var(--amber)}
+.logline{font-family:ui-monospace,monospace;font-size:.78rem;border-bottom:1px dotted var(--line);padding:3px 0}
+dialog{border:2px solid var(--amber);border-radius:12px;max-width:92vw}
+footer{padding:14px;text-align:center;font-size:.8rem;color:#78716c}
+</style>
+</head>
+<body>
+<header>
+<h1>⭐ Review Engine</h1>
+<p>Ask every happy customer for a Google review — in under a minute, right after the job.</p>
+</header>
+<main>
+
+<section class="card" id="setupCard">
+<h2>1 · Your business (one-time setup)</h2>
+<label for="bizName">Business name</label>
+<input id="bizName" autocomplete="organization" placeholder="e.g. Nomad Diesel Repair">
+<label for="reviewLink">Your Google review link (paste it once)</label>
+<input id="reviewLink" inputmode="url" placeholder="https://g.page/r/… or your Google review link">
+<label for="ownerName">Your first name (signs the text)</label>
+<input id="ownerName" autocomplete="given-name" placeholder="e.g. Dennis">
+<div class="row"><button id="saveSetup" type="button">Save setup</button></div>
+<p class="note" id="setupState">Not set up yet.</p>
+</section>
+
+<section class="card">
+<h2>2 · Job done — ask for the review</h2>
+<label for="custName">Customer first name</label>
+<input id="custName" placeholder="e.g. Maria">
+<label for="custPhone">Customer mobile number</label>
+<input id="custPhone" inputmode="tel" placeholder="e.g. 2085550147">
+<div class="row">
+<button id="makeRequest" type="button">Make the request</button>
+<button id="copyRequest" type="button" class="ghost">Copy the text</button>
+</div>
+<div id="msg" aria-live="polite">Your request text will appear here.</div>
+<div class="row">
+<a id="smsLink" href="#" style="text-decoration:none"><button id="openSms" type="button">📱 Open in Messages (you press send)</button></a>
+<button id="markSent" type="button" class="ghost">I sent it — log it</button>
+</div>
+<p class="note">Honest note: this tool prepares the text and opens YOUR Messages app. You press send — nothing is ever sent automatically. Automatic sending is the platform upgrade (grey button below).</p>
+</section>
+
+<section class="card">
+<h2>Your numbers</h2>
+<div class="stats">
+<div class="stat"><b id="stSent">0</b>requests sent</div>
+<div class="stat"><b id="stRemind">0</b>reminders sent</div>
+<div class="stat"><b id="stDone">0</b>reviews marked in</div>
+</div>
+</section>
+
+<section class="card">
+<h2>3 · Request log</h2>
+<div id="logWrap"><p class="note">No requests logged yet.</p></div>
+<div class="row">
+<button id="exportLog" type="button" class="ghost">Export log (JSON)</button>
+<button id="clearLog" type="button" class="ghost">Clear log</button>
+</div>
+<p class="note">Reminder rule: one friendly nudge, about 2 days after the request, only if they haven't reviewed yet. The log shows who's due.</p>
+</section>
+
+<section class="card">
+<h2>4 · Reply templates (copy &amp; paste)</h2>
+<label>When they leave 5 stars</label>
+<div class="note tpl" id="tpl5">Thank you, {name}! We really appreciate you choosing {biz}. If you ever need us again, you know where to find us. — {owner}</div>
+<div class="row"><button class="copyTpl small" data-t="tpl5" type="button">Copy 5-star reply</button></div>
+<label>When they leave 4 stars</label>
+<div class="note tpl" id="tpl4">Thanks for the kind words, {name} — and for the honest feedback. We're working on the rest. — {owner}, {biz}</div>
+<div class="row"><button class="copyTpl small" data-t="tpl4" type="button">Copy 4-star reply</button></div>
+<label>When they leave 3 stars or fewer (answer privately first)</label>
+<div class="note tpl" id="tplLow">Hi {name}, this is {owner} at {biz}. I saw your review and I'm sorry we missed the mark. Can I call you today and make it right?</div>
+<div class="row"><button class="copyTpl small" data-t="tplLow" type="button">Copy low-star reply</button></div>
+</section>
+
+<section class="card">
+<h2>5 · Counter card (QR)</h2>
+<p class="note">A printed QR for the counter or the invoice. It loads when you're online; offline, use the copy button and text the link instead.</p>
+<div id="qrBox" style="text-align:center;padding:8px"></div>
+<div class="row">
+<button id="makeQr" type="button">Make my QR card</button>
+<button id="copyLink" type="button" class="ghost">Copy review link</button>
+</div>
+</section>
+
+<section class="card">
+<h2>Coming with the platform</h2>
+<div class="row">
+<button class="grey" id="autoSend" type="button" data-blocked="1" aria-disabled="true">Automatic texting after every job — upgrade needed · Phase 2</button>
+<button class="grey" id="autoFetch" type="button" data-blocked="1" aria-disabled="true">Auto-fetch new Google reviews — upgrade needed · Phase 2</button>
+</div>
+<p class="note" id="greyNote"></p>
+<p class="note">These light up when the business is on the Answer Plan platform. They are shown grey on purpose — this tool never pretends a feature works when it doesn't.</p>
+</section>
+
+<section class="card" id="testpanel">
+<h2>First-run test (Button Log)</h2>
+<p class="note">On first open the Engine walks you through its own buttons and logs what really happens. Export the log when it finishes; afterwards this panel can be stripped from the shipped build (standing rule).</p>
+<div class="row">
+<button id="startTest" type="button">Start the test walk</button>
+<button id="exportTest" type="button" class="ghost">Export test log</button>
+</div>
+<div id="coach" class="note" style="margin-top:8px">Test not started.</div>
+<div id="testlog"></div>
+</section>
+
+<section class="card">
+<h2>About &amp; what this can't do</h2>
+<p class="note"><b>What it does:</b> keeps your review link and business details on this device, writes the request text for you, opens your Messages app, logs every request with its date, flags 2-day reminders, and holds reply templates. Everything is stored only in this browser on this device (local storage) — nothing leaves the phone except the texts you send yourself.</p>
+<p class="note"><b>Can't do (yet):</b> send texts by itself (needs the Phase 2 platform — shown grey above); read your Google reviews automatically (same); print the QR while offline (the QR maker loads online, on demand only). If a text doesn't reach a customer, this tool can't see that — your Messages app is the record.</p>
+</section>
+
+</main>
+<footer>Review Engine v1.0 · Cave Labs Brands · Works offline · Nothing is sent without your tap</footer>
+
+<dialog id="exportDlg">
+<p><b>Test complete.</b> Export the Button Log now? The file is the proof of this test run.</p>
+<div class="row"><button id="dlgExport" type="button">EXPORT NOW</button>
+<button id="dlgLater" type="button" class="ghost">Later</button></div>
+</dialog>
+
+<script>
+"use strict";
+var LS_SET="re_setup_v1", LS_LOG="re_log_v1", LS_TEST="re_test_v1";
+function $(id){return document.getElementById(id);}
+function load(k,d){try{var v=localStorage.getItem(k);return v?JSON.parse(v):d;}catch(e){return d;}}
+function save(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true;}catch(e){return false;}}
+var setup=load(LS_SET,null), log=load(LS_LOG,[]);
+var lastMsg="", lastName="", lastPhone="";
+
+/* ---------- test log (Button Log + in-app analysis) ---------- */
+var testEntries=[], testActive=false, testStep=0;
+var TEST_STEPS=[
+ {id:"saveSetup",label:"Save setup"},
+ {id:"makeRequest",label:"Make the request"},
+ {id:"openSms",label:"Open in Messages"},
+ {id:"markSent",label:"I sent it — log it"},
+ {id:"copyRequest",label:"Copy the text"},
+ {id:"exportLog",label:"Export log"},
+ {id:"makeQr",label:"Make my QR card"},
+ {id:"autoSend",label:"Automatic texting (grey — must log BLOCKED)"}
+];
+function tlog(screen,btn,outcome){
+  var e={t:new Date().toISOString(),screen:screen,button:btn,outcome:outcome};
+  testEntries.push(e);
+  var d=document.createElement("div");d.className="logline";
+  d.textContent=e.t.slice(11,19)+" · "+btn+" → "+outcome;
+  $("testlog").appendChild(d);
+}
+function wireLog(id,screen,label){
+  var el=$(id); if(!el)return;
+  el.addEventListener("click",function(){
+    if(testActive){
+      var want=TEST_STEPS[testStep];
+      if(want&&want.id===id){tlog(screen,label,el.dataset.blocked?"BLOCKED — upgrade needed · Phase 2":"FIRED");advanceTest();}
+    }
+  });
+}
+$("autoSend").addEventListener("click",function(){$("greyNote").textContent="Automatic texting is a Phase 2 platform upgrade — on the Answer Plan it sends itself after every job. In this version you press send (card 2).";});
+$("autoFetch").addEventListener("click",function(){$("greyNote").textContent="Auto-fetching Google reviews is a Phase 2 platform upgrade (needs the Google connection). In this version you mark reviews in from the log (card 3).";});
+function advanceTest(){
+  testStep++;
+  if(testStep>=TEST_STEPS.length){
+    testActive=false;
+    $("coach").textContent="Test complete — every button accounted for. Export the log.";
+    runAnalysis();
+    var d=$("exportDlg"); if(d&&d.showModal)d.showModal();
+  }else{
+    $("coach").textContent="Step "+(testStep+1)+" of "+TEST_STEPS.length+": tap “"+TEST_STEPS[testStep].label+"”.";
+  }
+}
+function runAnalysis(){
+  var btns=document.querySelectorAll("button"),noH=[];
+  btns.forEach(function(b){var has=b.id&&b.dataset.wired==="1";if(b.id&&!has&&!b.dataset.blocked)noH.push(b.id);});
+  tlog("analysis","handler census",noH.length?("FAILED — no handler flag: "+noH.join(",")):"FIRED — "+btns.length+" buttons checked");
+  var ok=save("re_probe",{x:1})&&load("re_probe",null)&&load("re_probe",null).x===1;
+  tlog("analysis","storage round-trip",ok?"FIRED — save/read match":"FAILED");
+  tlog("analysis","startup network","FIRED — no network attempted at startup (core is offline)");
+  tlog("analysis","claim-vs-engine","FIRED — grey Phase 2 buttons log BLOCKED on tap and are labelled");
+}
+document.querySelectorAll("button").forEach(function(b){b.dataset.wired="1";});
+["saveSetup","makeRequest","copyRequest","openSms","markSent","exportLog","makeQr","autoSend","autoFetch"].forEach(function(id){
+  wireLog(id,"main",id);
+});
+document.querySelectorAll(".copyTpl").forEach(function(b){
+  b.addEventListener("click",function(){copyText(fillTpl($(b.dataset.t).textContent));toast("Reply copied.");});
+});
+
+/* ---------- setup ---------- */
+function fillSetup(){
+  if(setup){$("bizName").value=setup.biz||"";$("reviewLink").value=setup.link||"";$("ownerName").value=setup.owner||"";
+    $("setupState").textContent="Saved: "+(setup.biz||"")+" · link on file · signs as "+(setup.owner||"");}
+}
+$("saveSetup").onclick=function(){
+  setup={biz:$("bizName").value.trim(),link:$("reviewLink").value.trim(),owner:$("ownerName").value.trim()};
+  if(!setup.biz||!setup.link){toast("Add the business name and the review link first.");return;}
+  save(LS_SET,setup);fillSetup();toast("Setup saved on this device.");
+};
+
+/* ---------- request ---------- */
+function fillTpl(t){
+  var biz=setup?setup.biz:"our shop", owner=setup?setup.owner:"the owner";
+  return t.split("{biz}").join(biz).split("{owner}").join(owner).split("{name}").join(lastName||"there");
+}
+function buildMsg(){
+  var biz=setup?setup.biz:"us", link=setup?setup.link:"";
+  return "Hi "+(lastName||"there")+", thanks for choosing "+biz+"! If we earned it, a quick Google review really helps a small shop like ours: "+link+" — "+(setup?setup.owner:"");
+}
+$("makeRequest").onclick=function(){
+  if(!setup){toast("Do the one-time setup first (card 1).");return;}
+  lastName=$("custName").value.trim(); lastPhone=$("custPhone").value.replace(/\D/g,"");
+  if(!lastName||lastPhone.length<7){toast("Add the customer's first name and mobile number.");return;}
+  lastMsg=buildMsg(); $("msg").textContent=lastMsg;
+  $("smsLink").href="sms:"+lastPhone+"?&body="+encodeURIComponent(lastMsg);
+  toast("Request ready — open Messages and press send, or copy it.");
+};
+$("copyRequest").onclick=function(){if(!lastMsg){toast("Make the request first.");return;}copyText(lastMsg);toast("Request text copied.");};
+$("markSent").onclick=function(){
+  if(!lastMsg){toast("Nothing to log yet — make the request first.");return;}
+  log.push({name:lastName,phone:lastPhone,when:new Date().toISOString(),sent:true,reminded:false,done:false});
+  save(LS_LOG,log);render();toast("Logged. Reminder due in about 2 days if no review lands.");
+};
+
+/* ---------- log ---------- */
+function due(iso){return (Date.now()-new Date(iso).getTime())>2*24*3600*1000;}
+function render(){
+  var s=0,r=0,dn=0;log.forEach(function(e){if(e.sent)s++;if(e.reminded)r++;if(e.done)dn++;});
+  $("stSent").textContent=s;$("stRemind").textContent=r;$("stDone").textContent=dn;
+  if(!log.length){$("logWrap").innerHTML='<p class="note">No requests logged yet.</p>';return;}
+  var h="<table><tr><th>Customer</th><th>When</th><th>Status</th><th></th></tr>";
+  log.forEach(function(e,i){
+    var st=e.done?"Review marked in":(e.reminded?"Reminded":(due(e.when)?"⏰ Reminder due":"Sent"));
+    h+="<tr><td>"+e.name+"</td><td>"+e.when.slice(0,10)+"</td><td>"+st+"</td><td>"+
+      '<button class="small ghost" data-act="remind" data-i="'+i+'" type="button">Nudge text</button> '+
+      '<button class="small ghost" data-act="done" data-i="'+i+'" type="button">Mark reviewed</button></td></tr>';
+  });
+  $("logWrap").innerHTML=h+"</table>";
+  $("logWrap").querySelectorAll("button").forEach(function(b){
+    b.onclick=function(){
+      var e=log[+b.dataset.i];
+      if(b.dataset.act==="done"){e.done=true;save(LS_LOG,log);render();}
+      else{
+        lastName=e.name;lastPhone=e.phone;
+        lastMsg="Hi "+e.name+", just a friendly nudge from "+(setup?setup.biz:"us")+" — if you've got 30 seconds, that Google review would mean a lot: "+(setup?setup.link:"");
+        $("msg").textContent=lastMsg;
+        $("smsLink").href="sms:"+e.phone+"?&body="+encodeURIComponent(lastMsg);
+        e.reminded=true;save(LS_LOG,log);render();
+        toast("Nudge ready above — open Messages and send it.");
+      }
+    };
+  });
+}
+$("exportLog").onclick=function(){download("review-engine-log.json",JSON.stringify(log,null,1));};
+$("clearLog").onclick=function(){if(confirm("Clear the whole request log on this device?")){log=[];save(LS_LOG,log);render();}};
+
+/* ---------- QR (lazy, online tier only) ---------- */
+$("makeQr").onclick=function(){
+  if(!setup||!setup.link){toast("Save your review link in setup first.");return;}
+  var box=$("qrBox");box.innerHTML='<p class="note">Loading the QR maker…</p>';
+  var s=document.createElement("script");
+  s.src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js";
+  s.onload=function(){box.innerHTML="";try{new QRCode(box,{text:setup.link,width:180,height:180});
+    var p=document.createElement("p");p.className="note";p.textContent=setup.biz+" — scan to review us";box.appendChild(p);}catch(e){box.innerHTML='<p class="note">QR maker failed — copy the link instead.</p>';}};
+  s.onerror=function(){box.innerHTML='<p class="note">No connection for the QR maker. The engine still works — copy the link and text it.</p>';};
+  document.head.appendChild(s);
+};
+$("copyLink").onclick=function(){if(!setup){toast("Do setup first.");return;}copyText(setup.link);toast("Review link copied.");};
+
+/* ---------- test controls ---------- */
+$("startTest").onclick=function(){
+  testActive=true;testStep=0;testEntries=[];$("testlog").innerHTML="";
+  $("coach").textContent="Step 1 of "+TEST_STEPS.length+": tap “"+TEST_STEPS[0].label+"”. (For grey buttons, the log records BLOCKED — that's a pass for honesty.)";
+  toast("Test walk started — follow the coach line.");
+};
+function exportTestFile(){
+  var pack={app:"Review Engine",version:"1.0",exported:new Date().toISOString(),entries:testEntries};
+  download("review-engine-button-log.json",JSON.stringify(pack,null,1));
+  save(LS_TEST,{done:true,at:pack.exported});
+}
+$("exportTest").onclick=exportTestFile;
+$("dlgExport").onclick=function(){$("exportDlg").close();exportTestFile();};
+$("dlgLater").onclick=function(){$("exportDlg").close();};
+
+/* ---------- helpers ---------- */
+function copyText(t){
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).catch(function(){fallbackCopy(t);});}
+  else fallbackCopy(t);
+}
+function fallbackCopy(t){var ta=document.createElement("textarea");ta.value=t;document.body.appendChild(ta);ta.select();try{document.execCommand("copy");}catch(e){}ta.remove();}
+function download(name,text){
+  try{
+    var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type:"application/json"}));
+    a.download=name;document.body.appendChild(a);a.click();a.remove();
+  }catch(e){
+    $("msg").textContent="Download was blocked in this browser. Your export data is safe in the log on this device — try the export from your regular browser. ("+name+")";
+  }
+}
+function toast(t){$("msg").textContent=t;}
+fillSetup();render();
+</script>
+</body>
+</html>

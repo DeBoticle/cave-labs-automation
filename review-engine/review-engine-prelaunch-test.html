@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prelaunch Test — Review Engine v1.0</title>
+<style>body{font-family:system-ui,sans-serif;margin:0;background:#fffbeb;color:#1c1917}main{max-width:640px;margin:0 auto;padding:14px}
+table{width:100%;border-collapse:collapse;font-size:.9rem}td,th{border-bottom:1px solid #e7e0cf;padding:7px 4px;text-align:left;vertical-align:top}
+button{min-height:44px;padding:8px 12px;border-radius:8px;border:2px solid #b45309;background:#fff;color:#b45309;font-weight:600}
+button.pass{background:#15803d;color:#fff;border-color:#15803d}button.fail{background:#b91c1c;color:#fff;border-color:#b91c1c}
+#verdict{font-size:1.15rem;font-weight:700;padding:12px;border-radius:10px;background:#fef3c7;margin:12px 0}
+textarea{width:100%;min-height:64px}h1{font-size:1.2rem}</style></head>
+<body><main>
+<h1>Prelaunch Functions Test — Review Engine v1.0</h1>
+<p>Open THIS file first, then the app. Tap each step in the app, mark it here. A crash at any point = NOT READY — fill the crash report in the moment.</p>
+<div id="verdict">Verdict: INCOMPLETE</div>
+<table id="t"><tr><th>#</th><th>Step — where to tap, what should happen</th><th>Mark</th></tr></table>
+<h2>Untested items</h2>
+<p>• Real SMS delivery — depends on the phone's Messages app and carrier; this file cannot see it. Tester confirms one real text arrives.<br>
+• QR generation online — needs a connection for the one-time maker load; offline behaviour (honest message) IS testable above.</p>
+<h2>Crash report</h2>
+<textarea id="crash" placeholder="If the app failed, froze, or closed: what were you doing, what did it do?"></textarea>
+<h2>Comments</h2>
+<textarea id="comments" placeholder="Anything else the tester noticed."></textarea>
+<script>
+var ROWS=[
+"Row 0 — Launch: open Review Engine. It loads with no internet, no login, no errors.",
+"Setup: type business name, paste the review link, add your name, tap Save setup. It says Saved with your details.",
+"Setup survives: reload the page. Your setup is still filled in.",
+"Make request: enter a customer first name + mobile, tap Make the request. The text appears, addressed to the customer, with your review link.",
+"Open in Messages: tap it. Your Messages app opens with the text ready — YOU press send. Nothing sent itself.",
+"Copy the text: tap it, paste somewhere — the request text pastes whole.",
+"Log it: tap 'I sent it — log it'. The log gains the customer, today's date, status Sent. Numbers row shows 1 request.",
+"Nudge: on the log row tap 'Nudge text'. A reminder text appears ready; the row counts as Reminded.",
+"Mark reviewed: tap it on the row. Status becomes Review marked in; numbers update.",
+"Templates: each of the 3 Copy reply buttons pastes its template with your business name filled in.",
+"QR (online): tap Make my QR card with a connection — a QR appears with your shop name under it. (Offline: it must say so honestly instead.)",
+"Grey buttons: tap both Phase 2 buttons. Each explains itself in plain words and does nothing else — no fake sending.",
+"Button Log: tap Start the test walk and follow the coach through all 8 steps, including the grey button (must log BLOCKED). It ends with Test complete.",
+"Export: export the test log and the request log — both download as files.",
+"Reload safety: mid-log, reload the page. Log and numbers are still there."
+];
+var t=document.getElementById('t'),marks={};
+ROWS.forEach(function(r,i){var tr=document.createElement('tr');
+ tr.innerHTML='<td>'+(i)+'</td><td>'+r+'</td>';
+ var td=document.createElement('td');
+ var bp=document.createElement('button');bp.textContent='Pass';
+ var bf=document.createElement('button');bf.textContent='Fail';
+ bp.onclick=function(){marks[i]='P';bp.className='pass';bf.className='';verdict();};
+ bf.onclick=function(){marks[i]='F';bf.className='fail';bp.className='';verdict();};
+ td.appendChild(bp);td.appendChild(bf);tr.appendChild(td);t.appendChild(tr);});
+function verdict(){
+ var v=document.getElementById('verdict');
+ if(document.getElementById('crash').value.trim()){v.textContent='Verdict: NOT READY — crash reported';return;}
+ var vals=Object.values(marks);
+ if(vals.indexOf('F')>=0){v.textContent='Verdict: NOT READY — a step failed';return;}
+ if(vals.length<ROWS.length){v.textContent='Verdict: INCOMPLETE — '+vals.length+' of '+ROWS.length+' rows marked';return;}
+ v.textContent='Verdict: READY WITH UNTESTED ITEMS (SMS delivery + online QR listed above)';
+}
+document.getElementById('crash').addEventListener('input',verdict);
+</script></main></body></html>
